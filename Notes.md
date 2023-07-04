@@ -144,3 +144,66 @@ Whereas Python
 </details>
 
 *****
+
+<details>
+<summary>Video: 5 - Health Check: EC2 Status Checks</summary>
+<br />
+
+Imagine you have provisioned hundreds of EC2 instances unsing Terraform. You also configured autoscaling, so there are always instances being initialized, running, shutting down or terminated. We want to have an overview of the current state of all these instances and write a Python script that periodically checks the state of all instances.
+
+See [demo project #1](./demo-projects/1-ec2-status-check/)
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 6 - Write a Scheduled Task in Python</summary>
+<br />
+
+To implement scheduled tasks, install the [schedule](https://pypi.org/project/schedule/) library:
+
+```sh
+pip3 install schedule
+```
+
+It allows to schedule tasks in a comfortable way:
+
+```python
+import schedule
+import time
+
+def job():
+    print("I'm working...")
+
+schedule.every(10).seconds.do(job)
+schedule.every(10).minutes.do(job)
+schedule.every().hour.do(job)
+schedule.every().day.at("10:30").do(job)
+schedule.every(5).to(10).minutes.do(job)
+schedule.every().monday.do(job)
+schedule.every().wednesday.at("13:15").do(job)
+schedule.every().day.at("12:42", "Europe/Paris").do(job)  # needs the pytz package to be installed
+schedule.every().minute.at(":17").do(job)
+
+def job_with_argument(name):
+    print(f"I am {name}")
+
+schedule.every(10).seconds.do(job_with_argument, name="Peter")
+
+while True:
+    schedule.run_pending()
+    time.sleep(1)
+```
+
+We can use it to schedule our status check task in [demo project #1](./demo-projects/1-ec2-status-check/):
+
+```python
+schedule.every(5).seconds.do(check_instance_status)
+```
+
+Run the script and terminate two instances by deleting their configuration blocks in the terraform configuration file and re-applying the terraform file. You should see the changing status information in the output of the Python script.
+
+</details>
+
+*****
