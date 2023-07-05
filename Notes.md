@@ -149,7 +149,7 @@ Whereas Python
 <summary>Video: 5 - Health Check: EC2 Status Checks</summary>
 <br />
 
-Imagine you have provisioned hundreds of EC2 instances unsing Terraform. You also configured autoscaling, so there are always instances being initialized, running, shutting down or terminated. We want to have an overview of the current state of all these instances and write a Python script that periodically checks the state of all instances.
+Imagine you have provisioned hundreds of EC2 instances using Terraform. You also configured autoscaling, so there are always instances being initialized, running, shutting down or terminated. We want to have an overview of the current state of all these instances and write a Python script that periodically checks the state of all instances.
 
 See [demo project #1](./demo-projects/1-ec2-status-check/)
 
@@ -203,6 +203,18 @@ schedule.every(5).seconds.do(check_instance_status)
 ```
 
 Run the script and terminate two instances by deleting their configuration blocks in the terraform configuration file and re-applying the terraform file. You should see the changing status information in the output of the Python script.
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 7 - Configure Server: Add Environment Tags to EC2 Instances</summary>
+<br />
+
+Imagine you have provisioned lots of EC2 instances in the Paris region and others in the Frankfurt region. Now you want to add a 'production' tag to all the instances in the Paris region and a 'development' tag to all of those in the Frankfurt region. You don't want to do that manually on each instance but rather write a Python script that does it automatically for all the instances.
+
+See [demo project #2](./demo-projects/2-ec2-configuration/)
 
 </details>
 
