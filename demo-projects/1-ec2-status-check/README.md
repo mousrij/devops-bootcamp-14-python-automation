@@ -43,7 +43,7 @@ terraform apply --auto-approve
 
 Go to the [EC2 Client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#client) documentation and look for the [describe_instance_status](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/describe_instance_status.html) function. 
 
-Create a `ec2-status-check.py` file with the following content:
+Create an `ec2-status-check.py` file with the following content:
 
 ```python
 import boto3
