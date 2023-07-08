@@ -219,3 +219,15 @@ See [demo project #2](./demo-projects/2-ec2-configuration/)
 </details>
 
 *****
+
+<details>
+<summary>Video: 8 - EKS cluster information</summary>
+<br />
+
+Imagine you have provisioned 10 EKS cluster and want to know for each of these the cluster status, which Kubernetes version is running on the cluster and what is the cluster endpoint.
+
+See [demo project #3](./demo-projects/3-eks-cluster-info/)
+
+</details>
+
+*****
