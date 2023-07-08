@@ -67,3 +67,9 @@ python3 eks-status-checks.py
 ```
 
 Don't forget to cleanup and delete the cluster executing `terraform destroy` when you're done. (You can check the status with your python script while the EKS cluster is being destroyed.)
+
+```sh
+# Cluster myapp-eks-cluster status is DELETING
+# Cluster endpoint: https://27E11D5EAE37934CBB773AAE6BB4BFE4.gr7.eu-central-1.eks.amazonaws.com
+# Cluster version: 1.27
+```
