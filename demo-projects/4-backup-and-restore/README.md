@@ -111,7 +111,7 @@ for volume in volumes.get('Volumes'):
 
 We want to create a new volume from the latest snapshot of an existing volume (which we assume got corrupted) and attach that new volume to the EC2 instance.
 
-Create a file called `resotre_volume.py` with the following content:
+Create a file called `restore_volume.py` with the following content:
 
 ```python
 import boto3
