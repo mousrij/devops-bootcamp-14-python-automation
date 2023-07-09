@@ -231,3 +231,39 @@ See [demo project #3](./demo-projects/3-eks-cluster-info/)
 </details>
 
 *****
+
+<details>
+<summary>Video: 9 - Backup EC2 Volumes: Automate creating Snapshots</summary>
+<br />
+
+Imagine you have provisioned lots of EC2 instances and want to automate the task of creating backups of their volumes (volume snapshots) on a daily bases.
+
+See [demo project #4](./demo-projects/4-backup-and-restore/)
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 10 - Automate cleanup of old Snapshots</summary>
+<br />
+
+Creating a backup of each EC2 instance volume every day will result in a lot of backups after a while. So you decide to write a Python script that automates the task of deleting all the snapshots except for the two most recent ones of each volume. This script may be used to cleanup the backups from time to time.
+
+See [demo project #4](./demo-projects/4-backup-and-restore/)
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 11 - Automate restoring EC2 Volume from the Backup</summary>
+<br />
+
+Imagine an EC2 instance has problems because its volume got corrupted. For such cases we want to have a Python script that automatically creates a new volume from the latest snapshot of the corrupted volume (assuming that this snapshot was still ok) and attach the new volume to the EC2 instance.
+
+See [demo project #4](./demo-projects/4-backup-and-restore/)
+
+</details>
+
+*****
