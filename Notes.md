@@ -267,3 +267,49 @@ See [demo project #4](./demo-projects/4-backup-and-restore/)
 </details>
 
 *****
+
+<details>
+<summary>Video: 12 - Handling Errors</summary>
+<br />
+
+It's important to handle possible errors in your Python programs properly. If errors are not handled properly, it can lead to data loss, corrupt data etc. It is generally a good practice to completely roll back and clean up half-created resources. In Python we have to care about this ourselves because we don't have a state as we do when using Terraform.
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 13 - Website Monitoring 1: Scheduled Task to Monitor Application Health</summary>
+<br />
+
+Now we are going to monitor a simple website (nginx) which is running in a Docker container on a Linode cloud server. The monitoring is done using a Python script that checks the accessibility of an endpoint provided by the nginx container. 
+
+See [demo project #5](./demo-projects/5-website-monitoring/)
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 14 - Website Monitoring 2: Automated Email Notification</summary>
+<br />
+
+If the nginx endpoint is not successfully accessible, we want our Python script to send us a notification via e-mail.
+
+See [demo project #5](./demo-projects/5-website-monitoring/)
+
+</details>
+
+*****
+
+<details>
+<summary>Video: 15 - Website Monitoring 3: Restart Application and Reboot Server</summary>
+<br />
+
+If the nginx endpoint is not successfully accessible, we want our Python script to try to fix the problem automatically. It should first try to restart the Docker container. If this is not possible because the whole cloud server is down, it should try to restart the Linode server.
+
+See [demo project #5](./demo-projects/5-website-monitoring/)
+
+</details>
+
+*****
