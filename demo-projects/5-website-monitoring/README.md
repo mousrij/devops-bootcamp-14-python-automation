@@ -92,4 +92,51 @@ except Exception as ex:
 
 #### Steps to write a Python script that sends an email notification when website is down
 
+We use our gmail account as an SMTP server to send e-mails. For the Python script to be able to authenticate with the server we need to configure the account for 2 factor authentication and add/generate an app password which we will then use in our Python script.
+
+Login to your gmail account, click on the profile circle in the right upper corner, press "Manage your Google Account", click on "Security" in the menu on the left, scroll down to the "How you sign in to Google" section and click on the "2-Step Verification" area, turn it on and configure a second factor if it is not yet activated, scroll down to "App passwords" and click on the area, generate a password, copy the value and save it at a secure place.
+
+Now open the `monitor-website.py` file and add content to send an e-mail as follows:
+
+```python
+import requests
+import smtplib
+import os
+
+EMAIL_ADDRESS = os.environ.get('EMAIL_ADDRESS')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD') # never write passwords into your python code
+
+def send_notification(email_msg):
+   print('Sending an email...')
+   with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
+       smtp.starttls()
+       smtp.ehlo()
+       smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+       message = f"Subject: SITE DOWN\n{email_msg}"
+       smtp.sendmail(EMAIL_ADDRESS, EMAIL_ADDRESS, message)
+
+try:
+    response = requests.get('http://194.233.169.74:8080/')
+    if response.status_code == 200:
+        print('Application is running successfully!')
+    else:
+        print('Application Down. Fix it!')
+        msg = f'Application returned {response.status_code}'
+        send_notification(msg)
+except Exception as ex:
+    print(f'Connection error happened: {ex}')
+    msg = 'Application not accessible at all'
+    send_notification(msg)
+```
+
+Run the script with the following command:
+```sh
+export EMAIL_ADDRESS=felix.siegrist@gmail.com; export EMAIL_PASSWORD=<app-password>; python3 monitor-website.py
+```
+
+If you want to test the execution path when an HTTP response code other than 200 is returned, just temporarily modify the line `if response.status_code == 200:` to `if response.status_code == 300:` and run the script again.
+
+To test the execution path when the application is not accessible at all, just temporarily modify the expression `requests.get('http://194.233.169.74:8080/')` to `requests.get('http://194.233.169.74:1234/')` and run the script again.
+
 #### Steps to write a Python script that restarts the application & server when needed
+
