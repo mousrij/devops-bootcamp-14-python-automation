@@ -316,11 +316,57 @@ while True:
 
 - Get all the repositories in ECR
 - Print the name of each repository
-- Choose one specific repository and for that repository, list all the image tags inside, sorted by date. Where the most recent image tag is on top
+- Choose one specific repository and for that repository, list all the image tags inside, sorted by date, here the most recent image tag is on top.
 
 **Solution:**
 
+See
+- [ECR Client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecr.html#client)
+- [describe_repositories](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecr/client/describe_repositories.html)
+- [describe_images] (https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ecr/client/describe_images.html)
 
+If there is no ECR repository available in your region, do exercise 5 first.
+
+```python
+import boto3
+
+ecr_client = boto3.client('ecr')
+
+# Get all ECR repos and print their names
+repos = ecr_client.describe_repositories().get('repositories')
+for repo in repos:
+    print(repo.get('repositoryName'))
+
+print("-----------------------")
+
+# For one specific repo, get all the images and print them out sorted by date
+repo_name = "java-app" # replace with your own repo-name
+images = ecr_client.describe_images(
+    repositoryName=repo_name
+)
+
+image_tags = []
+
+for image in images.get('imageDetails'):
+    image_tags.append({
+        'tag': image.get('imageTags'),
+        'pushed_at': image.get('imagePushedAt')
+    })
+
+images_sorted = sorted(image_tags, key=lambda tag: tag.get('pushed_at'), reverse=True)
+for image in images_sorted:
+    print(image)
+```
+
+Run the script:
+```sh
+python3 ex4.py
+# java-maven-app
+# -----------------------
+# {'tag': ['3.0'], 'pushed_at': datetime.datetime(2023, 7, 21, 16, 55, 20, tzinfo=tzlocal())}
+# {'tag': ['2.0'], 'pushed_at': datetime.datetime(2023, 7, 21, 16, 54, 20, tzinfo=tzlocal())}
+# {'tag': ['1.0'], 'pushed_at': datetime.datetime(2023, 7, 21, 16, 51, 11, tzinfo=tzlocal())}
+```
 
 </details>
 
@@ -343,7 +389,7 @@ Do the following preparation manually:
 Once all the above is configured, create a Jenkins Pipeline with the following steps:
 
 - Fetch all 3 images from the ECR repository (using Python)
-- Let the user select the image from the list (hint: https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/)
+- Let the user select the image from the list ([hint](https://www.jenkins.io/doc/pipeline/steps/pipeline-input-step/))
 - SSH into the EC2 server (using Python)
 - Run docker login to authenticate with ECR repository (using Python)
 - Start the container from the selected image from step 2 on EC2 instance (using Python)
@@ -351,7 +397,198 @@ Once all the above is configured, create a Jenkins Pipeline with the following s
 
 **Solution:**
 
+Login to your AWS Management Console account and navigate to the EC2 starting page. Create a new EC2 instance. Add a inbound rule to the security group opening the port 22 for ssh from 'my-ip' (the IP address of your local machine). SSH into the EC2 instance as 'ec2-user' and install Docker using the following commands:
+```sh
+ssh -i ~/.ssh/ec2-key-pair.pem ec2-user@<ec2-instance-ip>
 
+sudo yum update -y
+sudo yum install -y docker
+sudo systemctl start docker
+sudo usermod -aG docker ec2-user
+```
+
+SSH as root into your Jenkins-Droplet and install Python using the following commands:
+```sh
+ssh root@<jenkins-droplet-ip>
+docker exec -u 0 -it <jenkins-container-id> /bin/bash
+
+apt-get update
+apt-get install python3
+apt-get install pip
+pip install boto3
+pip install paramiko
+pip install requests
+```
+
+Login to your AWS Management Console account and navigate to the Elastic Container Registry starting page. Create a new private repository named 'java-maven-app'.
+
+Check out the java-maven-app from [GitHub](https://github.com/fsiegrist/devops-bootcamp-java-maven-app). Execute the following commands to build the application, create three Docker image tags and push the to the ECR:
+```sh
+cd <java-maven-app/project/root/directory>
+# step 1: build application
+mvn clean package
+# step 2: build docker image
+docker build -t java-maven-app .
+# step 3: create image tag
+docker tag java-maven-app:latest 369076538622.dkr.ecr.eu-central-1.amazonaws.com/java-maven-app:1.0
+
+# increase the version in the pom.xml and repeat steps 1 to 3 (increasing the tag version in step 3 to 2.0); then do it a third time for tag 3.0
+
+# authenticate the docker client to the ECR
+aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin 369076538622.dkr.ecr.eu-central-1.amazonaws.com
+# push the 3 image tags to the repository
+docker push 369076538622.dkr.ecr.eu-central-1.amazonaws.com/java-maven-app:1.0
+docker push 369076538622.dkr.ecr.eu-central-1.amazonaws.com/java-maven-app:2.0
+docker push 369076538622.dkr.ecr.eu-central-1.amazonaws.com/java-maven-app:3.0
+```
+
+Login as admin user to your Jenkins Management Console, go to the dashboard and open the 'devops-bootcamp-multibranch-pipeline' pipeline. Open the pipeline specific credentials and make sure there are still 'Secret Text' credentials with IDs 'jenkins-aws_access_key_id' and 'jenkins-aws_access_key_id' and 'SSH Username with private key' crendentials with ID 'ec2-server-key'. If not create them. Finally create new credentials of type 'Secret Text' named 'ecr-repo-pwd' and store the ECR password you copy with the following command:
+```sh
+aws ecr get-login-password --region eu-central-1 | pbcopy
+```
+
+Go to the root directory of the java-maven-app project and create a new branch named 'feature/python'. Create a directory called 'python' and add the following files:
+
+_python/get-images.py_
+```python
+import boto3
+import os
+
+repo_name = os.environ.get('ECR_REPO_NAME')
+
+ecr_client = boto3.client('ecr')
+
+# Fetch all 3 images from ECR repo
+images = ecr_client.describe_images(repositoryName=repo_name)
+
+image_tags = []
+for image in images.get('imageDetails'):
+    image_tags.append(image.get('imageTags')[0])
+
+for tag in image_tags:
+    print(tag)
+```
+
+_python/deploy.py_
+```python
+import os
+import paramiko
+
+# get all the env vars set in Jenkinsfile
+ssh_host = os.environ.get('EC2_SERVER')
+ssh_user = os.environ.get('EC2_USER')
+ssh_private_key = os.environ.get('SSH_KEY_FILE')
+
+docker_registry = os.environ.get('ECR_REGISTRY')
+docker_user = os.environ.get('DOCKER_USER')
+docker_pwd = os.environ.get('DOCKER_PWD')
+docker_image = os.environ.get('DOCKER_IMAGE') # version is selected by user in Jenkins 
+container_port = os.environ.get('CONTAINER_PORT')
+host_port = os.environ.get('HOST_PORT')
+
+# SSH into the EC2 server
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+ssh.connect(hostname=ssh_host, username=ssh_user, key_filename=ssh_private_key)
+
+stdin, stdout, stderr = ssh.exec_command(f"echo {docker_pwd} | docker login {docker_registry} --username {docker_user} --password-stdin")
+print(stdout.readlines())
+stdin, stdout, stderr = ssh.exec_command(f"docker run -p {host_port}:{container_port} -d {docker_image}")
+print(stdout.readlines())
+
+ssh.close()
+```
+
+_python/validate.py_
+```python
+from wsgiref.util import request_uri
+import requests
+import time
+import os
+
+ssh_host = os.environ.get('EC2_SERVER')
+host_port = os.environ.get('HOST_PORT')
+
+# Validate the application started successfully
+try:
+    # give the app some time to start up
+    time.sleep(15)
+    
+    response = requests.get(f"http://{ssh_host}:{host_port}")
+    if response.status_code == 200:
+        print('Application is running successfully!')
+    else:
+        print('Application deployment was not successful')
+except Exception as ex:
+    print(f'Connection error happened: {ex}')
+    print('Application not accessible at all')
+```
+
+Replace the content of the Jenkinsfile with the following:
+
+```groovy
+#!/usr/bin/env groovy
+
+pipeline {
+    agent any
+    environment {
+        ECR_REPO_NAME = 'java-maven-app' // SET VALUE
+        EC2_SERVER = '18.185.89.127' // SET VALUE
+        EC2_USER = 'ec2-user'
+        
+        // will be set to the location of the SSH key file that is temporarily created
+        SSH_KEY_FILE = credentials('ec2-server-key')
+
+        ECR_REGISTRY = '369076538622.dkr.ecr.eu-central-1.amazonaws.com' // SET VALUE
+        DOCKER_USER = 'AWS'
+        DOCKER_PWD = credentials('ecr-repo-pwd')
+        CONTAINER_PORT = '8080' // SET VALUE
+        HOST_PORT = '8080' // SET VALUE
+
+        AWS_ACCESS_KEY_ID = credentials('jenkins-aws_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws_secret_access_key')
+        AWS_DEFAULT_REGION = 'eu-central-1' // SET VALUE
+    }
+    stages {
+        stage('select image version') {
+            steps {
+                script {
+                    echo 'fetching available image versions'
+                    def result = sh(script: 'python3 python/get-images.py', returnStdout: true).trim()
+                    // split returns an Array, but choices expects either List or String, so we do "as List"
+                    def tags = result.split('\n') as List
+                    version_to_deploy = input message: 'Select version to deploy', ok: 'Deploy', parameters: [choice(name: 'Select version', choices: tags)]
+                    // put together the full image name
+                    env.DOCKER_IMAGE = "${ECR_REGISTRY}/${ECR_REPO_NAME}:${version_to_deploy}"
+                    echo env.DOCKER_IMAGE
+                }
+            }
+        }
+        stage('deploying image') {
+            steps {
+                script {
+                    echo 'deploying docker image to EC2...'
+                    def result = sh(script: 'python3 python/deploy.py', returnStdout: true).trim()
+                    echo result
+                }
+            }
+        }
+        stage('validate deployment') {
+            steps {
+                script {
+                    echo 'validating that the application was deployed successfully...'
+                    def result = sh(script: 'python3 python/validate.py', returnStdout: true).trim()
+                    echo result
+                }
+            }
+        }
+    }
+}
+```
+
+Commit and push the new branch. The multi-pipeline build should detect the new branch and start building it automatically. Note that during the 'select image version' stage, the build is waiting for user input.
+
+Don't forget to cleanup all the AWS resources when you've finished the exercise.
 
 </details>
 
