@@ -131,7 +131,7 @@ except Exception as ex:
 
 Run the script with the following commands:
 ```sh
-export EMAIL_ADDRESS=felix.siegrist@gmail.com
+export EMAIL_ADDRESS=<gmail-address>
 export EMAIL_PASSWORD=<gmail-app-password>
 python3 monitor-website.py
 ```
@@ -333,7 +333,7 @@ while True:  # <---
 
 This script can now be executed with the following commands:
 ```sh
-export EMAIL_ADDRESS=felix.siegrist@gmail.com
+export EMAIL_ADDRESS=<gmail-address>
 export EMAIL_PASSWORD=<gmail-app-password>
 export LINODE_TOKEN=<linode-access-token>
 python3 monitor-website.py
