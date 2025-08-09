@@ -44,7 +44,7 @@ To connect to AWS and authenticate against your AWS account using Boto3, nothing
 <details>
 <summary>Video: 3 - Getting familiar with Boto</summary>
 <br />
-
+<img src="./images/image.png" />
 To find a detailed documentation of the Boto3 library, check out the [Boto3 documentation page](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html).
 However, it is not very easy to find the documentation for the tasks you want to program. For example if we want to list all VPCs available in our region, we have to know that VPCs are related to EC2, so we click on the link for [EC2](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html), and 
 then find the documentation for [describe_vpcs](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/describe_vpcs.html), where you get information about required and optional parameters as well as about the structure of the response.
